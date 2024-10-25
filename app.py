@@ -5,8 +5,8 @@ from datetime import datetime
 
 st.set_page_config(page_title="Personal Finance", page_icon="🏆", layout="wide")
 
-st.image("Finance logo.jpg", width=240)
 st.header('Fam Personal Finance')
+st.image("Finance logo.jpg", width=360)
 
 
 current_time = datetime.now()
