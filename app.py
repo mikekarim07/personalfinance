@@ -5,7 +5,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Personal Finance", page_icon="🏆", layout="wide")
 
-st.image("https://www.formula1.com/etc/designs/fom-website/images/f1-tv-logo.svg", width=120)
+st.image("Finance logo.jpg", width=120)
 st.header('MK Personal Finance')
 
 
