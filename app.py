@@ -24,7 +24,7 @@ url = st.secrets["url"]
 key = st.secrets["key"]
 supabase_client = create_client(url, key)
 
-# Extraer la tabla de drivers
+# Extraer la tabla de DataFinances
 finances = supabase_client.table('DataFinances').select("*").execute()
 finances = pd.DataFrame(finances.data)
 finances = finances.sort_values(by='ForecastDate')
