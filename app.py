@@ -28,7 +28,7 @@ supabase_client = create_client(url, key)
 finances = supabase_client.table('DataFinances').select("*").execute()
 finances = pd.DataFrame(finances.data)
 finances = finances.sort_values(by='ForecastDate')
-finances = finances[["ForecastDate", "Type", "FromTo", "Description", "Forecast"]]
+# finances = finances[["ForecastDate", "Type", "FromTo", "Description", "Forecast"]]
 finances["Cummulative"] = finances['Forecast'].cumsum()
  
 st.dataframe(finances, hide_index=True)
