@@ -33,4 +33,7 @@ finances["Cummulative"] = finances['Forecast'].cumsum()
  
 st.dataframe(finances, hide_index=True)
 
-finances_edited= st.data_editor(finances)
+
+
+fin_editado = st.data_editor(finances)
+response = supabase_client.table('DataFinances').upsert(fin_editado).execute()
