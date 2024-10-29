@@ -24,11 +24,11 @@ try:
         finances = pd.DataFrame(finances_data.data)
         finances = finances.sort_values(by='ForecastDate')
 #        finances = finances[["ForecastDate", "Type", "FromTo", "Description", "Forecast"]]
-        finances["Cummulative"] = finances['Forecast'].cumsum()
+        #finances["Cummulative"] = finances['Forecast'].cumsum()
         
         # Mostrar datos en una tabla editable
         fin_editado = st.data_editor(finances)
-        fin_editado = fin_editado.drop(columns=['Cummulative'])        
+        #fin_editado = fin_editado.drop(columns=['Cummulative'])        
         
         # Subir cambios a Supabase
         response = supabase_client.table('DataFinances').upsert(fin_editado.to_dict(orient="records")).execute()
