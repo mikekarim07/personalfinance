@@ -28,6 +28,7 @@ try:
         
         # Mostrar datos en una tabla editable
         fin_editado = st.data_editor(finances)
+        fin_editado = fin_editado.drop(columns=['Cummulative'])        
         
         # Subir cambios a Supabase
         response = supabase_client.table('DataFinances').upsert(fin_editado.to_dict(orient="records")).execute()
