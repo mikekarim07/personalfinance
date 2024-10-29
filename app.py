@@ -32,3 +32,5 @@ finances = finances[["ForecastDate", "Type", "FromTo", "Description", "Forecast"
 finances["Cummulative"] = finances['Forecast'].cumsum()
  
 st.dataframe(finances, hide_index=True)
+
+finances_edited= st.data_editor(finances)
