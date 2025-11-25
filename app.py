@@ -4,7 +4,9 @@ import pandas as pd
 
 st.set_page_config(page_title="Personal Budget", page_icon="💰", layout="wide")
 
-# --- CONNECT TO SUPABASE ---
+# ---------------------------
+#   CONNECT TO SUPABASE
+# ---------------------------
 @st.cache_resource
 def get_client() -> Client:
     url = st.secrets["url"]
@@ -13,7 +15,48 @@ def get_client() -> Client:
 
 supabase = get_client()
 
-# --- LOAD DATA ---
+# ---------------------------
+#   AUTHENTICATION
+# ---------------------------
+def login_screen():
+    st.title("🔐 Login")
+
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        try:
+            res = supabase.auth.sign_in_with_password(
+                {"email": email, "password": password}
+            )
+
+            if res.user is not None:
+                st.session_state["user"] = res.user.email
+                st.success("Login successful!")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid credentials")
+        except Exception:
+            st.error("Login failed. Check email and password.")
+
+def logout_button():
+    with st.sidebar:
+        if st.button("Logout"):
+            st.session_state.clear()
+            st.experimental_rerun()
+
+# Check login BEFORE loading the app
+if "user" not in st.session_state:
+    login_screen()
+    st.stop()
+
+# Show logged in user + logout
+st.sidebar.success(f"Logged in as {st.session_state['user']}")
+logout_button()
+
+# ---------------------------
+#   LOAD DATA
+# ---------------------------
 @st.cache_data(ttl=30)
 def load_movs():
     data = supabase.table("data_movs").select("*").execute()
@@ -25,7 +68,9 @@ df = load_movs()
 st.subheader("Current Movements")
 st.dataframe(df, use_container_width=True)
 
-# --- ADD NEW ROW ---
+# ---------------------------
+#   ADD NEW MOVEMENT
+# ---------------------------
 st.subheader("➕ Add New Movement")
 
 with st.form("add_form"):
@@ -54,10 +99,12 @@ if submitted:
     st.cache_data.clear()
     st.experimental_rerun()
 
-# --- EDIT EXISTING ROW ---
+# ---------------------------
+#   EDIT MOVEMENT
+# ---------------------------
 st.subheader("✏️ Edit Movement")
 
-# Select row to edit
+# ID selector
 row_id = st.selectbox("Select Movement ID", df["movs_id"])
 
 row = df[df["movs_id"] == row_id].iloc[0]
