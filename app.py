@@ -26,7 +26,6 @@ st.set_page_config(layout="wide")
 
 st.title("💰 Personal Budget Planner")
 
-
 # -----------------------------
 # LOAD DATA
 # -----------------------------
@@ -96,9 +95,7 @@ if not df.empty:
     col1, col2, col3 = st.columns(3)
 
     col1.metric("Balance Forecast", f"${balance:,.0f}")
-
     col2.metric("Income", f"${income:,.0f}")
-
     col3.metric("Expenses", f"${expenses:,.0f}")
 
 
@@ -164,7 +161,7 @@ with st.form("add_transaction"):
 
 
 # -----------------------------
-# ADD RECURRING TRANSACTION
+# ADD RECURRING
 # -----------------------------
 
 st.subheader("Add Recurring Transaction")
