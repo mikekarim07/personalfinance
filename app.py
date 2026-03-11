@@ -212,7 +212,7 @@ if not df.empty:
 
         category_filter = st.selectbox(
             "Category",
-            categories)
+            categories
         )
     
 
