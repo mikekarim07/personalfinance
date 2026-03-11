@@ -176,7 +176,7 @@ with st.form("add_transaction"):
 
 st.subheader("Filters")
 
-categories = sorted(
+categories = ["All"] + sorted(
     df["category"]
     .dropna()
     .astype(str)
