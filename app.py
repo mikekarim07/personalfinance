@@ -1,21 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-from database import (
-    load_data,
-    insert_transaction,
-    supabase
-)
-
-from finance import (
-    calculate_financials,
-    detect_cashflow_risk
-)
-
-from charts import (
-    balance_chart,
-    monthly_cashflow
-)
+from database import load_data, supabase
+from finance import calculate_financials, detect_cashflow_risk
+from charts import balance_chart, monthly_cashflow
 
 
 st.set_page_config(layout="wide")
@@ -39,7 +27,7 @@ if not df.empty:
     df = calculate_financials(df)
 
 # -----------------------------
-# CASHFLOW RISK DETECTION
+# CASHFLOW RISK
 # -----------------------------
 
 if not df.empty:
@@ -190,11 +178,13 @@ else:
 
 st.subheader("Transactions")
 
-editable_df = filtered.sort_values("date")
+editable_df = filtered.sort_values("date").reset_index(drop=True)
 
-edited_df = st.data_editor(
+display_df = editable_df.drop(columns=["id"])
 
-    editable_df,
+edited_display_df = st.data_editor(
+
+    display_df,
 
     use_container_width=True,
 
@@ -243,7 +233,15 @@ edited_df = st.data_editor(
 )
 
 # -----------------------------
-# SAVE EDITS TO SUPABASE
+# REBUILD DATAFRAME WITH ID
+# -----------------------------
+
+edited_df = edited_display_df.copy()
+
+edited_df["id"] = editable_df["id"]
+
+# -----------------------------
+# SAVE CHANGES
 # -----------------------------
 
 if not edited_df.equals(editable_df):
