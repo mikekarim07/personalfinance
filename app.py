@@ -4,8 +4,6 @@ import pandas as pd
 from database import (
     load_data,
     insert_transaction,
-    insert_transactions,
-    load_recurring,
     supabase
 )
 
@@ -18,8 +16,6 @@ from charts import (
     balance_chart,
     monthly_cashflow
 )
-
-from recurring import generate_recurring
 
 
 st.set_page_config(layout="wide")
@@ -35,34 +31,12 @@ df = load_data()
 if not df.empty:
     df["date"] = pd.to_datetime(df["date"])
 
-
 # -----------------------------
-# GENERATE RECURRING
-# -----------------------------
-
-recurring_df = load_recurring()
-
-if not recurring_df.empty:
-
-    new_rows = generate_recurring(recurring_df, df)
-
-    if len(new_rows) > 0:
-
-        insert_transactions(new_rows)
-
-        df = load_data()
-
-        df["date"] = pd.to_datetime(df["date"])
-
-
-# -----------------------------
-# FINANCIAL CALCULATIONS
+# CALCULATE FINANCIALS
 # -----------------------------
 
 if not df.empty:
-
     df = calculate_financials(df)
-
 
 # -----------------------------
 # CASHFLOW RISK DETECTION
@@ -76,9 +50,8 @@ if not df.empty:
 
         st.warning(
             f"⚠ Cashflow risk on {risk['date'].date()} "
-            f"Balance: ${risk['running_balance']:,.0f}"
+            f"Balance: ${risk['running_balance']:,.2f}"
         )
-
 
 # -----------------------------
 # METRICS
@@ -94,10 +67,9 @@ if not df.empty:
 
     col1, col2, col3 = st.columns(3)
 
-    col1.metric("Balance Forecast", f"${balance:,.0f}")
-    col2.metric("Income", f"${income:,.0f}")
-    col3.metric("Expenses", f"${expenses:,.0f}")
-
+    col1.metric("Balance Forecast", f"${balance:,.2f}")
+    col2.metric("Income", f"${income:,.2f}")
+    col3.metric("Expenses", f"${expenses:,.2f}")
 
 # -----------------------------
 # ADD TRANSACTION
@@ -153,74 +125,11 @@ with st.form("add_transaction"):
 
         }
 
-        insert_transaction(row)
+        supabase.table("transactions").insert(row).execute()
 
         st.success("Transaction added")
 
         st.rerun()
-
-
-# -----------------------------
-# ADD RECURRING
-# -----------------------------
-
-st.subheader("Add Recurring Transaction")
-
-with st.form("recurring_transaction"):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        r_description = st.text_input("Description")
-
-        r_type = st.selectbox(
-            "Type",
-            ["Income", "Expense"],
-            key="rtype"
-        )
-
-        r_category = st.text_input("Category")
-
-    with col2:
-
-        r_subcategory = st.text_input("Subcategory")
-
-        r_amount = st.number_input(
-            "Amount",
-            step=0.01
-        )
-
-        r_day = st.number_input(
-            "Day of Month",
-            min_value=1,
-            max_value=28
-        )
-
-    r_submit = st.form_submit_button("Add Recurring")
-
-    if r_submit:
-
-        row = {
-
-            "description": r_description,
-            "type": r_type,
-            "category": r_category,
-            "subcategory": r_subcategory,
-            "amount": r_amount,
-            "frequency": "monthly",
-            "day_of_month": int(r_day)
-
-        }
-
-        supabase.table(
-            "recurring_transactions"
-        ).insert(row).execute()
-
-        st.success("Recurring transaction added")
-
-        st.rerun()
-
 
 # -----------------------------
 # FILTERS
@@ -275,18 +184,91 @@ else:
 
     filtered = df
 
-
 # -----------------------------
-# TABLE
+# EDITABLE TABLE
 # -----------------------------
 
 st.subheader("Transactions")
 
-st.dataframe(
-    filtered.sort_values("date"),
-    use_container_width=True
+editable_df = filtered.sort_values("date")
+
+edited_df = st.data_editor(
+
+    editable_df,
+
+    use_container_width=True,
+
+    column_config={
+
+        "date": st.column_config.DateColumn("Date"),
+
+        "budget_amount": st.column_config.NumberColumn(
+            "Budget",
+            format="$ %,.2f"
+        ),
+
+        "actual_amount": st.column_config.NumberColumn(
+            "Actual",
+            format="$ %,.2f"
+        ),
+
+        "effective_amount": st.column_config.NumberColumn(
+            "Effective",
+            format="$ %,.2f",
+            disabled=True
+        ),
+
+        "running_balance": st.column_config.NumberColumn(
+            "Balance",
+            format="$ %,.2f",
+            disabled=True
+        ),
+
+        "variance": st.column_config.NumberColumn(
+            "Variance",
+            format="$ %,.2f",
+            disabled=True
+        ),
+
+    },
+
+    disabled=[
+        "effective_amount",
+        "running_balance",
+        "variance"
+    ],
+
+    key="transactions_editor"
+
 )
 
+# -----------------------------
+# SAVE EDITS TO SUPABASE
+# -----------------------------
+
+if not edited_df.equals(editable_df):
+
+    for i, row in edited_df.iterrows():
+
+        original = editable_df.loc[i]
+
+        if not row.equals(original):
+
+            supabase.table("transactions").update({
+
+                "date": str(row["date"]),
+                "description": row["description"],
+                "type": row["type"],
+                "category": row["category"],
+                "subcategory": row["subcategory"],
+                "budget_amount": row["budget_amount"],
+                "actual_amount": row["actual_amount"]
+
+            }).eq("id", row["id"]).execute()
+
+    st.success("Changes saved")
+
+    st.rerun()
 
 # -----------------------------
 # CHARTS
