@@ -13,7 +13,7 @@ def balance_chart(df):
     return fig
 
 
-import pandas as pd
+import pandas as pdimport pandas as pd
 import plotly.express as px
 
 
@@ -21,19 +21,35 @@ def monthly_cashflow(df):
 
     df = df.copy()
 
-    # asegurar tipo datetime
-    df["date"] = pd.to_datetime(df["date"])
+    # asegurar formato fecha
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-    # crear columna mes segura para Plotly
-    df["month"] = df["date"].dt.to_period("M").astype(str)
+    # eliminar filas sin fecha
+    df = df.dropna(subset=["date"])
 
-    # calcular ingresos y gastos
-    summary = df.groupby(["month", "type"])["effective_amount"].sum().reset_index()
+    # crear columna mes como string (no Period)
+    df["month"] = df["date"].dt.strftime("%Y-%m")
 
-    # pivot para gráfico
+    # asegurar números puros
+    df["effective_amount"] = pd.to_numeric(df["effective_amount"], errors="coerce").fillna(0)
+
+    # agrupar
+    summary = (
+        df.groupby(["month", "type"])["effective_amount"]
+        .sum()
+        .reset_index()
+    )
+
+    # pivot
     summary = summary.pivot(index="month", columns="type", values="effective_amount").fillna(0)
 
+    # reset index
     summary = summary.reset_index()
+
+    # convertir a float puro
+    for col in summary.columns:
+        if col != "month":
+            summary[col] = summary[col].astype(float)
 
     fig = px.bar(
         summary,
@@ -45,7 +61,9 @@ def monthly_cashflow(df):
 
     fig.update_layout(
         yaxis_title="Amount",
-        xaxis_title="Month"
+        xaxis_title="Month",
+        yaxis_tickprefix="$",
+        yaxis_tickformat=",.0f"
     )
 
     return fig
