@@ -13,21 +13,39 @@ def balance_chart(df):
     return fig
 
 
+import pandas as pd
+import plotly.express as px
+
+
 def monthly_cashflow(df):
 
-    monthly = df.copy()
+    df = df.copy()
 
-    monthly["month"] = monthly["date"].dt.to_period("M")
+    # asegurar tipo datetime
+    df["date"] = pd.to_datetime(df["date"])
 
-    monthly = monthly.groupby(
-        ["month","type"]
-    )["effective_amount"].sum().reset_index()
+    # crear columna mes segura para Plotly
+    df["month"] = df["date"].dt.to_period("M").astype(str)
+
+    # calcular ingresos y gastos
+    summary = df.groupby(["month", "type"])["effective_amount"].sum().reset_index()
+
+    # pivot para gráfico
+    summary = summary.pivot(index="month", columns="type", values="effective_amount").fillna(0)
+
+    summary = summary.reset_index()
 
     fig = px.bar(
-        monthly,
+        summary,
         x="month",
-        y="effective_amount",
-        color="type"
+        y=[col for col in summary.columns if col != "month"],
+        barmode="group",
+        title="Monthly Cashflow"
+    )
+
+    fig.update_layout(
+        yaxis_title="Amount",
+        xaxis_title="Month"
     )
 
     return fig
