@@ -240,6 +240,9 @@ edited_df["id"] = editable_df["id"]
 # -----------------------------
 # SAVE EDITS TO SUPABASE
 # -----------------------------
+# -----------------------------
+# SAVE CHANGES
+# -----------------------------
 
 if not edited_df.equals(editable_df):
 
@@ -249,17 +252,19 @@ if not edited_df.equals(editable_df):
 
         if not row.equals(original):
 
-            supabase.table("transactions").update({
+            update_data = {
 
-                "date": str(row["date"]),
-                "description": row["description"],
-                "type": row["type"],
-                "category": row["category"],
-                "subcategory": row["subcategory"],
-                "budget_amount": row["budget_amount"],
-                "actual_amount": row["actual_amount"]
+                "date": str(row["date"]) if pd.notnull(row["date"]) else None,
+                "description": str(row["description"]) if pd.notnull(row["description"]) else None,
+                "type": str(row["type"]) if pd.notnull(row["type"]) else None,
+                "category": str(row["category"]) if pd.notnull(row["category"]) else None,
+                "subcategory": str(row["subcategory"]) if pd.notnull(row["subcategory"]) else None,
+                "budget_amount": float(row["budget_amount"]) if pd.notnull(row["budget_amount"]) else None,
+                "actual_amount": float(row["actual_amount"]) if pd.notnull(row["actual_amount"]) else None,
 
-            }).eq("id", row["id"]).execute()
+            }
+
+            supabase.table("transactions").update(update_data).eq("id", row["id"]).execute()
 
     st.success("Changes saved")
 
