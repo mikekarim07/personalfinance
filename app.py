@@ -176,6 +176,13 @@ with st.form("add_transaction"):
 
 st.subheader("Filters")
 
+categories = sorted(
+    df["category"]
+    .dropna()
+    .astype(str)
+    .unique()
+)
+
 if not df.empty:
 
     col1, col2, col3, col4 = st.columns(4)
@@ -205,7 +212,7 @@ if not df.empty:
 
         category_filter = st.selectbox(
             "Category",
-            sorted(df["category"].unique())
+            categories)
         )
     
 
@@ -227,6 +234,11 @@ if not df.empty:
             filtered["type"] == type_filter
         ]
 
+    if category_filter != "All":
+
+        filtered = filtered[
+            filtered["category"] == category_filter
+        ]
 else:
 
     filtered = df
