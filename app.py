@@ -241,15 +241,20 @@ edited_df["id"] = editable_df["id"]
 # SAVE CHANGES
 # -----------------------------
 
-changes = edited_df.compare(editable_df)
+for i in range(len(edited_df)):
 
-if not changes.empty:
+    row = edited_df.loc[i]
+    original = editable_df.loc[i]
 
-    changed_rows = changes.index.unique()
+    changed = False
 
-    for i in changed_rows:
+    for col in ["date","description","type","category","subcategory","budget_amount","actual_amount"]:
 
-        row = edited_df.loc[i]
+        if str(row[col]) != str(original[col]):
+            changed = True
+            break
+
+    if changed:
 
         update_data = {
 
@@ -265,9 +270,7 @@ if not changes.empty:
 
         supabase.table("transactions").update(update_data).eq("id", row["id"]).execute()
 
-    st.success("Changes saved")
-
-    st.rerun()
+st.success("Changes saved")
 # -----------------------------
 # CHARTS
 # -----------------------------
