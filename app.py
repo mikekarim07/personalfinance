@@ -27,7 +27,7 @@ if not df.empty:
     df = calculate_financials(df)
 
 # -----------------------------
-# CASHFLOW RISK
+# CASHFLOW RISK DETECTION
 # -----------------------------
 
 if not df.empty:
@@ -180,6 +180,7 @@ st.subheader("Transactions")
 
 editable_df = filtered.sort_values("date").reset_index(drop=True)
 
+# Ocultamos el UUID en la vista
 display_df = editable_df.drop(columns=["id"])
 
 edited_display_df = st.data_editor(
@@ -232,16 +233,12 @@ edited_display_df = st.data_editor(
 
 )
 
-# -----------------------------
-# REBUILD DATAFRAME WITH ID
-# -----------------------------
-
+# Reconstruimos dataframe con ID oculto
 edited_df = edited_display_df.copy()
-
 edited_df["id"] = editable_df["id"]
 
 # -----------------------------
-# SAVE CHANGES
+# SAVE EDITS TO SUPABASE
 # -----------------------------
 
 if not edited_df.equals(editable_df):
