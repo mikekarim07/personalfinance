@@ -178,7 +178,7 @@ st.subheader("Filters")
 
 if not df.empty:
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
 
@@ -200,6 +200,14 @@ if not df.empty:
             "Type",
             ["All", "Income", "Expense"]
         )
+
+    with col4:
+
+        category_filter = st.selectbox(
+            "Category",
+            sorted(df["category"].unique())
+        )
+    
 
     filtered = df.copy()
 
