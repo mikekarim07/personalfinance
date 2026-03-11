@@ -13,9 +13,6 @@ def balance_chart(df):
     return fig
 
 
-import pandas as pdimport pandas as pd
-import plotly.express as px
-
 
 def monthly_cashflow(df):
 
